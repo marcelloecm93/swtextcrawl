@@ -1,0 +1,34 @@
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+dist/
+build/
+
+# uv
+uv.lock
+
+# Generated output & uploads
+output/
+uploads/
+
+# Claude Code
+.claude/
+CLAUDE.md
+memory/
+
+# Planning docs
+planning/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo

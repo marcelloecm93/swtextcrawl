@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Star Wars Text Crawl Generator</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #000;
+      color: #ffe81f;
+      font-family: 'Georgia', serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 48px 16px 64px;
+      background-image:
+        radial-gradient(ellipse at 20% 30%, rgba(255,232,31,0.03) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 70%, rgba(255,232,31,0.02) 0%, transparent 60%);
+    }
+
+    /* Starfield */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        radial-gradient(1px 1px at 10% 15%, #fff 0%, transparent 100%),
+        radial-gradient(1px 1px at 25% 42%, #fff 0%, transparent 100%),
+        radial-gradient(1px 1px at 37% 8%,  #fff 0%, transparent 100%),
+        radial-gradient(1px 1px at 52% 60%, #fff 0%, transparent 100%),
+        radial-gradient(1px 1px at 63% 22%, #fff 0%, transparent 100%),
+        radial-gradient(1px 1px at 71% 80%, #fff 0%, transparent 100%),
+        radial-gradient(1px 1px at 85% 35%, #fff 0%, transparent 100%),
+        radial-gradient(1px 1px at 92% 55%, #fff 0%, transparent 100%),
+        radial-gradient(1px 1px at 5%  75%, #fff 0%, transparent 100%),
+        radial-gradient(1px 1px at 44% 90%, #fff 0%, transparent 100%),
+        radial-gradient(1.5px 1.5px at 18% 62%, rgba(255,255,255,0.6) 0%, transparent 100%),
+        radial-gradient(1.5px 1.5px at 79% 14%, rgba(255,255,255,0.6) 0%, transparent 100%),
+        radial-gradient(1.5px 1.5px at 58% 48%, rgba(255,255,255,0.4) 0%, transparent 100%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 680px;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+
+    .logo-line {
+      font-size: 11px;
+      letter-spacing: 0.35em;
+      text-transform: uppercase;
+      color: #ffe81f99;
+      margin-bottom: 12px;
+    }
+
+    h1 {
+      font-size: clamp(28px, 5vw, 44px);
+      font-weight: normal;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      line-height: 1.15;
+      text-shadow: 0 0 40px rgba(255,232,31,0.4);
+    }
+
+    .divider {
+      width: 80px;
+      height: 1px;
+      background: #ffe81f44;
+      margin: 20px auto 0;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    label {
+      font-size: 11px;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: #ffe81fbb;
+    }
+
+    input[type="text"],
+    textarea {
+      background: rgba(255,232,31,0.04);
+      border: 1px solid rgba(255,232,31,0.2);
+      color: #ffe81f;
+      font-size: 16px;
+      font-family: inherit;
+      padding: 12px 16px;
+      border-radius: 2px;
+      outline: none;
+      transition: border-color 0.2s, background 0.2s;
+      width: 100%;
+    }
+    input[type="text"]::placeholder,
+    textarea::placeholder { color: rgba(255,232,31,0.25); }
+    input[type="text"]:focus,
+    textarea:focus {
+      border-color: rgba(255,232,31,0.6);
+      background: rgba(255,232,31,0.07);
+    }
+
+    textarea {
+      min-height: 200px;
+      resize: vertical;
+      line-height: 1.6;
+    }
+
+    .upload-area {
+      border: 1px dashed rgba(255,232,31,0.3);
+      border-radius: 2px;
+      padding: 28px 16px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      position: relative;
+    }
+    .upload-area:hover, .upload-area.drag-over {
+      border-color: rgba(255,232,31,0.7);
+      background: rgba(255,232,31,0.05);
+    }
+    .upload-area input[type="file"] {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+      width: 100%;
+      height: 100%;
+    }
+    .upload-icon { font-size: 28px; margin-bottom: 8px; }
+    .upload-label { font-size: 13px; color: #ffe81faa; letter-spacing: 0.1em; }
+    .upload-hint { font-size: 11px; color: #ffe81f55; margin-top: 4px; }
+    .upload-filename {
+      margin-top: 10px;
+      font-size: 13px;
+      color: #ffe81f;
+      word-break: break-all;
+    }
+
+    .btn {
+      background: #ffe81f;
+      color: #000;
+      border: none;
+      padding: 16px 32px;
+      font-size: 13px;
+      font-weight: bold;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      cursor: pointer;
+      border-radius: 2px;
+      transition: background 0.15s, transform 0.1s;
+      align-self: stretch;
+    }
+    .btn:hover { background: #fff0a0; }
+    .btn:active { transform: scale(0.98); }
+    .btn:disabled { background: #ffe81f44; color: #00000088; cursor: not-allowed; transform: none; }
+
+    #status-box {
+      display: none;
+      margin-top: 32px;
+      border: 1px solid rgba(255,232,31,0.2);
+      border-radius: 2px;
+      padding: 24px;
+      text-align: center;
+    }
+
+    .spinner {
+      width: 36px;
+      height: 36px;
+      border: 2px solid rgba(255,232,31,0.2);
+      border-top-color: #ffe81f;
+      border-radius: 50%;
+      animation: spin 0.9s linear infinite;
+      margin: 0 auto 16px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .status-text {
+      font-size: 13px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #ffe81fcc;
+    }
+
+    .warning-text {
+      font-size: 12px;
+      color: #ffb347cc;
+      margin-top: 8px;
+      letter-spacing: 0.05em;
+    }
+
+    .download-btn {
+      display: inline-block;
+      margin-top: 16px;
+      background: #ffe81f;
+      color: #000;
+      text-decoration: none;
+      padding: 14px 32px;
+      font-size: 13px;
+      font-weight: bold;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      border-radius: 2px;
+      transition: background 0.15s;
+    }
+    .download-btn:hover { background: #fff0a0; }
+
+    .error-text {
+      color: #ff6b6b;
+      font-size: 13px;
+      letter-spacing: 0.05em;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <p class="logo-line">A long time ago in a galaxy far, far away&hellip;</p>
+      <h1>Star Wars<br>Text Crawl Generator</h1>
+      <div class="divider"></div>
+    </header>
+
+    <form id="crawl-form">
+      <div class="field">
+        <label for="episode_label">Episode Label</label>
+        <input type="text" id="episode_label" name="episode_label"
+               placeholder="Episode IV" maxlength="60" />
+      </div>
+
+      <div class="field">
+        <label for="episode_title">Episode Title</label>
+        <input type="text" id="episode_title" name="episode_title"
+               placeholder="A NEW HOPE" maxlength="80" />
+      </div>
+
+      <div class="field">
+        <label for="body_text">Crawl Text <span style="color:#ffe81f55">(required)</span></label>
+        <textarea id="body_text" name="body_text"
+          placeholder="It is a period of civil war. Rebel spaceships, striking from a hidden base, have won their first victory against the evil Galactic Empire..."></textarea>
+      </div>
+
+      <div class="field">
+        <label>Audio File <span style="color:#ffe81f55">(required)</span></label>
+        <div class="upload-area" id="upload-area">
+          <input type="file" id="audio" name="audio" accept=".mp3,.wav,.ogg,.m4a" required />
+          <div class="upload-icon">&#9835;</div>
+          <div class="upload-label">Drop audio file here or click to browse</div>
+          <div class="upload-hint">MP3, WAV, OGG, M4A &mdash; max 50 MB</div>
+          <div class="upload-filename" id="upload-filename"></div>
+        </div>
+      </div>
+
+      <button type="submit" class="btn" id="generate-btn">Generate Crawl</button>
+    </form>
+
+    <div id="status-box">
+      <div id="spinner" class="spinner"></div>
+      <p class="status-text" id="status-text">Rendering&hellip;</p>
+      <p class="warning-text" id="warning-text"></p>
+      <div id="download-area"></div>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById('crawl-form');
+    const btn = document.getElementById('generate-btn');
+    const statusBox = document.getElementById('status-box');
+    const statusText = document.getElementById('status-text');
+    const spinner = document.getElementById('spinner');
+    const warningText = document.getElementById('warning-text');
+    const downloadArea = document.getElementById('download-area');
+    const uploadArea = document.getElementById('upload-area');
+    const uploadFilename = document.getElementById('upload-filename');
+    const audioInput = document.getElementById('audio');
+
+    audioInput.addEventListener('change', () => {
+      if (audioInput.files[0]) {
+        uploadFilename.textContent = audioInput.files[0].name;
+      }
+    });
+
+    uploadArea.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      uploadArea.classList.add('drag-over');
+    });
+    uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('drag-over'));
+    uploadArea.addEventListener('drop', (e) => {
+      e.preventDefault();
+      uploadArea.classList.remove('drag-over');
+      if (e.dataTransfer.files[0]) {
+        audioInput.files = e.dataTransfer.files;
+        uploadFilename.textContent = e.dataTransfer.files[0].name;
+      }
+    });
+
+    let pollInterval = null;
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const bodyText = document.getElementById('body_text').value.trim();
+      if (!bodyText) {
+        alert('Please enter crawl text.');
+        return;
+      }
+      if (!audioInput.files[0]) {
+        alert('Please select an audio file.');
+        return;
+      }
+
+      btn.disabled = true;
+      statusBox.style.display = 'block';
+      spinner.style.display = 'block';
+      statusText.textContent = 'Uploading and starting render…';
+      warningText.textContent = '';
+      downloadArea.innerHTML = '';
+
+      const fd = new FormData(form);
+
+      let jobId;
+      try {
+        const res = await fetch('/generate', { method: 'POST', body: fd });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || 'Server error');
+        jobId = data.job_id;
+        if (data.warnings && data.warnings.length) {
+          warningText.textContent = '⚠️ ' + data.warnings.join(' ');
+        }
+      } catch (err) {
+        spinner.style.display = 'none';
+        statusText.textContent = '';
+        downloadArea.innerHTML = `<p class="error-text">Error: ${err.message}</p>`;
+        btn.disabled = false;
+        return;
+      }
+
+      statusText.textContent = 'Rendering your crawl…';
+
+      pollInterval = setInterval(async () => {
+        try {
+          const res = await fetch(`/status/${jobId}`);
+          const data = await res.json();
+
+          if (data.status === 'done') {
+            clearInterval(pollInterval);
+            spinner.style.display = 'none';
+            statusText.textContent = 'Your crawl is ready.';
+            downloadArea.innerHTML = `
+              <a class="download-btn" href="/download/${jobId}" download>
+                &#8659; Download MP4
+              </a>`;
+            btn.disabled = false;
+          } else if (data.status === 'error') {
+            clearInterval(pollInterval);
+            spinner.style.display = 'none';
+            statusText.textContent = 'Render failed.';
+            downloadArea.innerHTML = `<p class="error-text">${data.error || 'Unknown error'}</p>`;
+            btn.disabled = false;
+          }
+        } catch {
+          // transient network error — keep polling
+        }
+      }, 2000);
+    });
+  </script>
+</body>
+</html>
